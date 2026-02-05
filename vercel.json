@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "name": "cyberzid-social",
+  "env": {
+    "JWT_SECRET": "@jwt_secret",
+    "DB_HOST": "@db_host",
+    "DB_PORT": "@db_port",
+    "DB_USER": "@db_user",
+    "DB_PASSWORD": "@db_password",
+    "DB_NAME": "@db_name",
+    "NODE_ENV": "production"
+  },
+  "builds": [
+    {
+      "src": "server/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server/index.js"
+    }
+  ],
+  "domains": [
+    "social-planet.space",
+    "www.social-planet.space"
+  ]
+}
