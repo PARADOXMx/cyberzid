@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: cyberzid-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cyberzid
+      MYSQL_USER: cyberzid
+      MYSQL_PASSWORD: cyberzid123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - cyberzid-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Servidor Node.js
+  app:
+    build: .
+    container_name: cyberzid-app
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: cyberzid
+      DB_PASSWORD: cyberzid123
+      DB_NAME: cyberzid
+      JWT_SECRET: your-super-secret-key-change-in-production
+    ports:
+      - "3000:3000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - cyberzid-network
+    command: npm run dev
+
+  # Redis (opcional para caché)
+  redis:
+    image: redis:7-alpine
+    container_name: cyberzid-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cyberzid-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 3s
+      retries: 5
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  cyberzid-network:
+    driver: bridge
